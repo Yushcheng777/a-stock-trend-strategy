@@ -1,0 +1,156 @@
+# A股市场基本配置
+market:
+  name: "A股市场"
+  currency: "CNY"
+  timezone: "Asia/Shanghai"
+  
+  # 交易时间设置
+  trading_hours:
+    morning_start: "09:30"
+    morning_end: "11:30"
+    afternoon_start: "13:00"
+    afternoon_end: "15:00"
+    
+  # 市场规则
+  rules:
+    t_plus_1: true  # T+1交易制度
+    price_limit_normal: 0.10  # 普通股票涨跌停板限制 ±10%
+    price_limit_star: 0.20   # 科创板/创业板涨跌停板限制 ±20%
+    min_tick: 0.01           # 最小价格变动单位
+
+# 策略核心参数
+strategy:
+  name: "A股三角移动平均趋势策略"
+  
+  # 移动平均线参数 (针对A股调整)
+  triangular_ma:
+    fast_period: 5    # 快线周期
+    slow_period: 30   # 慢线周期
+    smoothing: 3      # 三角平滑系数
+    
+  # ADX趋势确认参数 (针对A股调整)
+  adx:
+    period: 14
+    threshold: 25     # ADX阈值，A股市场适当降低
+    strong_trend: 40  # 强趋势阈值
+    
+  # 入场信号参数
+  entry:
+    breakout_period: 20    # 突破周期
+    volume_confirm: true   # 成交量确认
+    volume_ratio: 1.5      # 成交量倍数确认
+    gap_threshold: 0.03    # 跳空缺口阈值 (3%)
+
+# 风险管理参数
+risk:
+  # 仓位管理
+  position:
+    max_position: 0.95      # 最大仓位
+    initial_position: 0.2   # 初始建仓比例
+    add_position_ratio: 0.1 # 加仓比例
+    max_single_stock: 0.15  # 单只股票最大仓位
+    
+  # 止损止盈
+  stop_loss:
+    max_loss: 0.08         # 最大亏损比例 (8%)
+    trailing_stop: 0.05    # 追踪止损比例 (5%)
+    
+  stop_profit:
+    target_profit: 0.20    # 目标盈利比例 (20%)
+    partial_profit: 0.15   # 部分止盈比例 (15%)
+    
+  # 回撤控制
+  drawdown:
+    max_drawdown: 0.15     # 最大回撤限制 (15%)
+    reduce_position_dd: 0.10 # 回撤减仓阈值 (10%)
+
+# A股特色风险控制
+a_share_features:
+  # 涨跌停板处理
+  price_limit:
+    avoid_limit_up: true     # 避免追涨停
+    avoid_limit_down: true   # 避免追跌停
+    limit_approach_threshold: 0.08  # 接近涨跌停阈值 (8%)
+    
+  # 午间休市风险控制
+  lunch_break:
+    reduce_position_before: true  # 午休前减仓
+    avoid_new_entry: true        # 午休前避免新开仓
+    
+  # 节假日处理
+  holidays:
+    reduce_before_holiday: true   # 节假日前减仓
+    days_before: 2               # 提前天数
+    reduce_ratio: 0.3            # 减仓比例
+    
+  # 政策敏感期
+  policy_sensitive:
+    monitor_keywords: ["货币政策", "金融监管", "房地产", "科技"]
+    reduce_position: true
+    sensitivity_period: 5  # 敏感期天数
+
+# 技术指标参数
+indicators:
+  # MACD参数 (A股优化)
+  macd:
+    fast_period: 12
+    slow_period: 26
+    signal_period: 9
+    
+  # KDJ参数 (A股常用)
+  kdj:
+    k_period: 9
+    d_period: 3
+    j_period: 3
+    overbought: 80
+    oversold: 20
+    
+  # 成交量指标
+  volume:
+    ma_period: 20
+    surge_ratio: 2.0      # 放量倍数
+    shrink_ratio: 0.5     # 缩量倍数
+
+# 数据源配置
+data:
+  primary_source: "akshare"    # 主要数据源: akshare 或 tushare
+  backup_source: "tushare"     # 备用数据源
+  
+  # 数据更新设置
+  update:
+    auto_update: true
+    update_time: "15:30"       # 每日更新时间
+    
+  # 缓存设置
+  cache:
+    enable: true
+    expire_days: 7
+
+# 回测配置
+backtest:
+  # 基本设置
+  start_date: "2020-01-01"
+  end_date: "2024-12-31"
+  initial_capital: 1000000      # 初始资金 (100万)
+  
+  # 交易成本 (A股实际成本)
+  costs:
+    commission: 0.0003          # 佣金费率 (万三)
+    stamp_tax: 0.001           # 印花税 (卖出时)
+    transfer_fee: 0.00002      # 过户费
+    min_commission: 5          # 最低佣金 (5元)
+    
+  # 滑点设置
+  slippage:
+    percentage: 0.001          # 滑点百分比
+    
+  # 基准设置
+  benchmark: "000300.SH"       # 沪深300作为基准
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/strategy.log"
+  rotation: "1 day"
+  retention: "30 days"
