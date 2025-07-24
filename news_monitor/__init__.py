@@ -22,6 +22,7 @@ from .keyword_matcher import KeywordMatcher
 from .policy_calendar import PolicyCalendar
 from .risk_assessor import RiskAssessor
 from .strategy_adapter import StrategyAdapter
+from .monitor_system import NewsMonitorSystem, create_monitor_system
 
 __all__ = [
     "NewsCrawler",
@@ -30,4 +31,6 @@ __all__ = [
     "PolicyCalendar",
     "RiskAssessor",
     "StrategyAdapter",
+    "NewsMonitorSystem",
+    "create_monitor_system",
 ]

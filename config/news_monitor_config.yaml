@@ -1,0 +1,116 @@
+# A股新闻政策监控系统配置文件
+
+# 新闻数据源配置
+news_sources:
+  sina_finance:
+    enabled: true
+    url: "https://finance.sina.com.cn/api/roll_news.php"
+    priority: 7
+    request_delay: 1.0
+    
+  eastmoney:
+    enabled: true
+    url: "http://api.eastmoney.com/news/list"
+    priority: 8
+    request_delay: 1.0
+    
+  official_sources:
+    enabled: true
+    priority: 10
+    sources:
+      pbc: "http://www.pbc.gov.cn/goutongjiaoliu/113456/113469/index.html"
+      csrc: "http://www.csrc.gov.cn/csrc/c100028/common_list.shtml"
+      ndrc: "https://www.ndrc.gov.cn/xwdt/xwfb/"
+    request_delay: 2.0
+
+# 关键词监控配置
+keyword_monitoring:
+  policy_keywords:
+    monetary_policy:
+      weight: 0.9
+      keywords: ["货币政策", "降准", "降息", "加息", "流动性", "存款准备金率", "MLF", "逆回购"]
+    fiscal_policy:
+      weight: 0.8
+      keywords: ["财政政策", "减税", "降费", "基建", "消费刺激", "预算", "赤字"]
+    regulatory_policy:
+      weight: 0.7
+      keywords: ["监管", "注册制", "退市", "规范发展", "证监会", "银保监会"]
+  
+  risk_keywords:
+    systemic_risk:
+      weight: 1.0
+      keywords: ["系统性风险", "金融危机", "流动性危机", "债务危机", "银行危机"]
+    geopolitical:
+      weight: 0.9
+      keywords: ["地缘政治", "贸易战", "贸易摩擦", "制裁", "关税"]
+    market_risk:
+      weight: 0.8
+      keywords: ["暴跌", "跌停", "熔断", "大跌", "闪崩", "黑天鹅"]
+
+# 情感分析配置
+sentiment_analysis:
+  threshold: 0.1
+  use_jieba: true
+  custom_dict_enabled: true
+  impact_threshold: 0.3
+
+# 风险评估配置
+risk_assessment:
+  thresholds:
+    high_risk: 0.7
+    medium_risk: 0.4
+  weights:
+    sentiment_weight: 0.3
+    impact_weight: 0.4
+    volatility_weight: 0.3
+  time_decay_factor: 0.1
+
+# 策略适配配置
+strategy_adapter:
+  position_limits:
+    max_reduction: 0.8
+    min_position: 0.2
+    adjustment_step: 0.1
+  
+  signal_settings:
+    decay_hours: 24
+    confidence_threshold: 0.6
+    max_simultaneous: 5
+  
+  industry_weights:
+    finance: 0.25
+    technology: 0.20
+    consumption: 0.15
+    manufacturing: 0.15
+    real_estate: 0.10
+    healthcare: 0.10
+    energy: 0.05
+
+# 政策日历配置
+policy_calendar:
+  advance_warning_days: 3
+  policy_window_buffer: 2
+  enable_recurring_events: true
+  enable_economic_calendar: true
+
+# 监控频率配置
+monitoring:
+  news_crawl_interval: 30    # 分钟
+  analysis_interval: 15      # 分钟
+  risk_check_interval: 5     # 分钟
+  max_news_per_cycle: 100
+
+# 数据存储配置
+data_storage:
+  database_enabled: false    # 暂时使用内存存储
+  cache_enabled: true
+  cache_ttl: 3600           # 秒
+  export_enabled: true
+  export_format: "json"
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_enabled: true
+  file_path: "logs/news_monitor.log"
