@@ -8,3 +8,10 @@
 2025-07-24 08:56:25,053 - news_monitor.monitor_system - ERROR - 新闻爬取失败: 'request_delay'
 2025-07-24 08:56:25,053 - news_monitor.monitor_system - INFO - 爬取完成，新增 0 条新闻，缓存总计 0 条
 2025-07-24 08:56:25,053 - news_monitor.monitor_system - INFO - 无新闻数据，跳过分析
+2025-07-24 08:58:20,238 - news_monitor.monitor_system - INFO - A股新闻政策监控系统初始化完成
+2025-07-24 08:58:20,238 - news_monitor.monitor_system - INFO - 开始新闻分析任务
+2025-07-24 08:58:20,239 - news_monitor.monitor_system - ERROR - 分析新闻失败: 'sentiment_threshold'
+2025-07-24 08:58:20,239 - news_monitor.monitor_system - ERROR - 分析新闻失败: 'sentiment_threshold'
+2025-07-24 08:58:20,239 - news_monitor.monitor_system - ERROR - 分析新闻失败: 'sentiment_threshold'
+2025-07-24 08:58:20,239 - news_monitor.monitor_system - INFO - 分析完成，处理了 0 条新闻
+2025-07-24 08:58:20,239 - news_monitor.monitor_system - INFO - 开始风险检查任务
