@@ -373,39 +373,85 @@ class DualMAOptimizedStrategy:
         }
 
 
-if __name__ == "__main__":
-    # Example usage with sample data
-    import datetime
-    
-    # Create sample data for demonstration
-    dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='D')
+def create_realistic_sample_data(start_date='2023-01-01', end_date='2023-12-31', initial_price=100):
+    """
+    Create more realistic sample data with trending patterns and volume spikes
+    that can trigger trading signals.
+    """
+    dates = pd.date_range(start=start_date, end=end_date, freq='D')
+    n_days = len(dates)
     np.random.seed(42)
     
-    # Generate sample OHLCV data
+    # Simple approach: create trending data with clear patterns
+    base_returns = np.random.normal(0, 0.02, n_days)
+    
+    # Add trending patterns - create cyclical trends
+    trend_component = np.sin(np.linspace(0, 4*np.pi, n_days)) * 0.01
+    momentum_component = np.zeros(n_days)
+    
+    # Add momentum effect
+    for i in range(1, n_days):
+        momentum_component[i] = 0.3 * base_returns[i-1]
+    
+    # Combine all components
+    total_returns = base_returns + trend_component + momentum_component
+    
+    # Calculate prices
+    prices = [initial_price]
+    for i in range(1, n_days):
+        new_price = prices[-1] * (1 + total_returns[i])
+        prices.append(new_price)
+    
+    # Generate OHLC from close prices
+    opens = [initial_price] + prices[:-1]  # Open is previous close
+    closes = prices
+    
+    # Generate highs and lows
+    highs = []
+    lows = []
+    for i in range(n_days):
+        daily_volatility = abs(total_returns[i]) * closes[i] + np.random.exponential(closes[i] * 0.005)
+        high = max(opens[i], closes[i]) + np.random.uniform(0, daily_volatility)
+        low = min(opens[i], closes[i]) - np.random.uniform(0, daily_volatility)
+        highs.append(high)
+        lows.append(low)
+    
+    # Generate volume with occasional spikes
+    base_volume = 50000
+    volume_multipliers = np.random.lognormal(0, 0.3, n_days)
+    
+    # Add volume spikes during high volatility periods
+    high_vol_days = np.abs(total_returns) > np.percentile(np.abs(total_returns), 80)
+    volume_multipliers[high_vol_days] *= 2.0
+    
+    volumes = (base_volume * volume_multipliers).astype(int)
+    
     sample_data = pd.DataFrame({
-        'date': dates,
-        'open': 100 + np.cumsum(np.random.randn(len(dates)) * 0.5),
-        'high': 100 + np.cumsum(np.random.randn(len(dates)) * 0.5) + np.random.rand(len(dates)) * 2,
-        'low': 100 + np.cumsum(np.random.randn(len(dates)) * 0.5) - np.random.rand(len(dates)) * 2,
-        'close': 100 + np.cumsum(np.random.randn(len(dates)) * 0.5),
-        'volume': np.random.randint(10000, 100000, len(dates))
-    })
+        'open': opens,
+        'high': highs,
+        'low': lows,
+        'close': closes,
+        'volume': volumes
+    }, index=dates)
     
-    # Ensure high >= low and proper OHLC relationships
-    sample_data['high'] = np.maximum(sample_data['high'], sample_data[['open', 'close']].max(axis=1))
-    sample_data['low'] = np.minimum(sample_data['low'], sample_data[['open', 'close']].min(axis=1))
+    return sample_data
+
+
+if __name__ == "__main__":
+    # Example usage with realistic sample data
+    print("=== Creating Realistic Sample Data ===")
+    sample_data = create_realistic_sample_data()
     
-    sample_data.set_index('date', inplace=True)
-    
-    # Initialize and run strategy
+    # Initialize and run strategy with more relaxed parameters for demonstration
     strategy = DualMAOptimizedStrategy(
         fast_ma_period=8,
         slow_ma_period=21,
         adx_period=14,
-        rsi_overbought=70,
-        rsi_oversold=30,
+        rsi_overbought=80,  # More relaxed
+        rsi_oversold=20,    # More relaxed
         stop_loss_pct=0.08,
-        time_stop_days=20
+        time_stop_days=20,
+        volume_spike_multiplier=1.2  # More relaxed
     )
     
     # Run backtest
@@ -425,3 +471,21 @@ if __name__ == "__main__":
             print(f"Trade {i+1}: {pos['entry_date'].strftime('%Y-%m-%d')} to {pos['exit_date'].strftime('%Y-%m-%d')}")
             print(f"  Entry: {pos['entry_price']:.2f}, Exit: {pos['exit_price']:.2f}")
             print(f"  Return: {pos['return']:.2%}, Days: {pos['days_held']}, Reason: {pos['exit_reason']}")
+    else:
+        print("\n=== Strategy Analysis ===")
+        data_with_signals = results['data_with_indicators']
+        print(f"Data points: {len(data_with_signals)}")
+        print(f"Buy signals: {data_with_signals['buy_signal'].sum()}")
+        print(f"Sell signals: {data_with_signals['sell_signal'].sum()}")
+        
+        # Show some indicator values
+        valid_data = data_with_signals.dropna()
+        if len(valid_data) > 0:
+            print(f"\nSample indicator values (last 5 days):")
+            sample_cols = ['close', 'ma_fast', 'ma_slow', 'rsi', 'adx', 'volume_spike']
+            print(valid_data[sample_cols].tail())
+            
+        print("\nNote: No trades generated. Consider:")
+        print("1. Using real market data with stronger trends")
+        print("2. Further relaxing entry conditions")
+        print("3. Adjusting ADX threshold for trend detection")
